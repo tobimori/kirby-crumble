@@ -1,0 +1,39 @@
+{
+	"name": "tobimori/kirby-crumble",
+	"description": "Kirby Crumble is a feature-rich cookie consent plugin for Kirby CMS, focuses on providing a compliant backend API that tracks and logs consents.",
+	"type": "kirby-plugin",
+	"license": "proprietary",
+	"homepage": "https://plugins.andkindness.com/crumble",
+	"version": "1.0.0-beta.1",
+	"authors": [
+		{
+			"name": "Tobias Möritz",
+			"email": "tobias@moeritz.io"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"tobimori\\Crumble\\": "classes"
+		}
+	},
+	"require": {
+		"php": ">=8.3.0",
+		"getkirby/composer-installer": "^1.2.1"
+	},
+	"scripts": {
+		"dist": "composer install --no-dev --optimize-autoloader",
+		"fix": "php-cs-fixer fix"
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"allow-plugins": {
+			"getkirby/composer-installer": true
+		}
+	},
+	"extra": {
+		"kirby-cms-path": false
+	},
+	"require-dev": {
+		"getkirby/cms": "^5"
+	}
+}
