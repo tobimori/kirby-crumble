@@ -9,6 +9,8 @@
 	"crumble.fields.preferencesModal": "Preferences Modal",
 	"crumble.fields.preferencesModal.help": "The preferences modal will be shown to the user when they click on the preferences button. The user can make detailed settings for single categories or services and customize the consent.",
 	"crumble.fields.flipButtons": "Flip Buttons",
+	"crumble.fields.disablePageInteraction": "Disable page interaction",
+	"crumble.fields.disablePageInteraction.help": "Prevents users from interacting with the page until they respond to the consent modal",
 	"crumble.fields.layout": "Layout",
 	"crumble.fields.layout.box": "Box",
 	"crumble.fields.layout.bar": "Bar",

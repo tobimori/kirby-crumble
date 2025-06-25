@@ -9,6 +9,8 @@
 	"crumble.fields.preferencesModal": "Einstellungsmenü",
 	"crumble.fields.preferencesModal.help": "Das Präferenzmodal wird der Nutzerin angezeigt, wenn sie auf die Präferenz-Schaltfläche klickt. Die Nutzerin kann detaillierte Einstellungen für einzelne Kategorien oder Dienste vornehmen und die Zustimmung anpassen.",
 	"crumble.fields.flipButtons": "Schaltflächen umkehren",
+	"crumble.fields.disablePageInteraction": "Seiteninteraktion deaktivieren",
+	"crumble.fields.disablePageInteraction.help": "Verhindert die Interaktion mit der Seite, bis der Nutzer auf das Consent-Modal reagiert",
 	"crumble.fields.layout": "Layout",
 	"crumble.fields.layout.box": "Box",
 	"crumble.fields.layout.bar": "Leiste",

@@ -12,6 +12,7 @@ columns:
         type: toggles
         required: true
         default: "box"
+        translate: false
         options:
           - value: box
             text:
@@ -27,6 +28,7 @@ columns:
         type: toggles
         default: "default"
         required: true
+        translate: false
         options:
           - value: default
             text:
@@ -43,6 +45,7 @@ columns:
         label: crumble.fields.buttons
         help: crumble.fields.buttons.help
         type: toggle
+        translate: false
         when:
           consentLayout: cloud
       consentBarButtons:
@@ -54,6 +57,7 @@ columns:
         type: toggles
         default: bottom
         required: true
+        translate: false
         options:
           - value: top left
             text:
@@ -93,6 +97,7 @@ columns:
         type: toggles
         default: bottom
         required: true
+        translate: false
         options:
           - value: bottom
             text:
@@ -105,6 +110,13 @@ columns:
       flipButtons:
         label: crumble.fields.flipButtons
         type: toggle
+        translate: false
+        default: false
+      disablePageInteraction:
+        label: crumble.fields.disablePageInteraction
+        help: crumble.fields.disablePageInteraction.help
+        type: toggle
+        translate: false
         default: false
   - width: 1/2
     fields:
@@ -117,6 +129,7 @@ columns:
         type: toggles
         required: true
         default: bar
+        translate: false
         options:
           - value: box
             text:
@@ -129,6 +142,7 @@ columns:
         type: toggles
         default: default
         required: true
+        translate: false
         options:
           - value: default
             text:
@@ -143,6 +157,7 @@ columns:
         type: toggles
         default: left
         required: true
+        translate: false
         options:
           - value: left
             text:

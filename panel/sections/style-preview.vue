@@ -14,55 +14,67 @@ const { load } = useSection()
 const panel = usePanel()
 const sectionData = ref({})
 
-// function to load section data
 const loadSectionData = async () => {
 	const response = await load({
 		parent: props.parent,
 		name: props.name
 	})
-	console.log('Section data loaded:', response)
 	sectionData.value = response
 }
 
-// initial load
 loadSectionData()
 
-// watch for language changes and reload section data
-watch(() => panel.language.code, async (newLang, oldLang) => {
-	console.log('Language changed from', oldLang, 'to', newLang)
-	await loadSectionData()
-	// reinitialize cookie consent with new translations
-	if (ccInstance) {
-		ccInstance.hide()
-		initCookieConsent()
+watch(
+	() => panel.language.code,
+	async () => {
+		await loadSectionData()
+		if (ccInstance) {
+			if (CookieConsent.hide) CookieConsent.hide()
+			initCookieConsent()
+		}
 	}
+)
+
+const consentModal = computed(() => {
+	if (!content.value) return { layout: "box", position: "bottom left" }
+
+	const layout = content.value.consentlayout || "box"
+	const variant = content.value.consentboxvariant || "default"
+
+	let fullLayout = layout
+	if (layout === "box" && variant !== "default") {
+		fullLayout = `${layout} ${variant}`
+	} else if (layout === "cloud" && content.value.consentcloudbuttons) {
+		fullLayout = `${layout} inline`
+	} else if (layout === "bar" && content.value.consentbarbuttons) {
+		fullLayout = `${layout} inline`
+	}
+
+	let position = "bottom left"
+	if (layout === "box")
+		position = content.value.consentboxposition || "bottom left"
+	else if (layout === "cloud")
+		position = content.value.consentcloudposition || "bottom left"
+	else if (layout === "bar")
+		position = content.value.consentbarposition || "bottom"
+
+	return { layout: fullLayout, position }
 })
 
-// compute the position based on layout type
-const consentPosition = computed(() => {
-	if (!content.value) return "bottom left"
-	const layout = content.value.consentlayout
+const preferencesModal = computed(() => {
+	if (!content.value) return { layout: "bar", position: "left" }
 
-	if (layout === "box") return content.value.consentpositionbox
-	if (layout === "box inline") return content.value.consentpositionboxinline
-	if (layout === "box wide") return content.value.consentpositionboxwide
+	const layout = content.value.preferenceslayout || "bar"
+	const size = content.value.preferencessize || "default"
 
-	// for bar layouts, position is handled differently
-	return "bottom left"
+	const fullLayout =
+		layout === "bar" && size !== "default" ? `${layout} ${size}` : layout
+
+	const position = content.value.preferencesposition || "left"
+
+	return { layout: fullLayout, position }
 })
 
-// compute preferences position
-const preferencesPosition = computed(() => {
-	if (!content.value) return "left"
-	const layout = content.value.preferenceslayout
-
-	if (layout === "bar") return content.value.preferencespositionbar
-	if (layout === "bar wide") return content.value.preferencespositionbarwide
-
-	return "left"
-})
-
-// build the config object
 const config = computed(() => ({
 	cookie: {
 		name: "cc_cookie_preview",
@@ -70,13 +82,14 @@ const config = computed(() => ({
 	},
 	guiOptions: {
 		consentModal: {
-			layout: content.value?.consentlayout || "box",
-			position: consentPosition.value || "bottom left",
-			flipButtons: content.value?.flipbuttons || false
+			layout: consentModal.value.layout,
+			position: consentModal.value.position,
+			flipButtons: content.value?.flipbuttons || false,
+			disablePageInteraction: false
 		},
 		preferencesModal: {
-			layout: content.value?.preferenceslayout || "bar",
-			position: preferencesPosition.value || "left"
+			layout: preferencesModal.value.layout,
+			position: preferencesModal.value.position
 		}
 	},
 	categories: {
@@ -87,23 +100,43 @@ const config = computed(() => ({
 		marketing: {}
 	},
 	language: {
-		default: 'x-default',
+		default: "x-default",
 		translations: {
-			'x-default': {
+			"x-default": {
 				consentModal: {
-					title: content.value?.consenttitle || sectionData.value?.translations?.consentModal?.title,
+					title:
+						content.value?.consenttitle ||
+						sectionData.value?.translations?.consentModal?.title,
 					description:
-						content.value?.consentdescription || sectionData.value?.translations?.consentModal?.description,
-					acceptAllBtn: content.value?.consentacceptallbtn || sectionData.value?.translations?.consentModal?.acceptAllBtn,
-					acceptNecessaryBtn: content.value?.consentacceptnecessarybtn || sectionData.value?.translations?.consentModal?.acceptNecessaryBtn,
-					showPreferencesBtn: content.value?.consentshowpreferencesbtn || sectionData.value?.translations?.consentModal?.showPreferencesBtn
+						content.value?.consentdescription ||
+						sectionData.value?.translations?.consentModal?.description,
+					acceptAllBtn:
+						content.value?.consentacceptallbtn ||
+						sectionData.value?.translations?.consentModal?.acceptAllBtn,
+					acceptNecessaryBtn:
+						content.value?.consentacceptnecessarybtn ||
+						sectionData.value?.translations?.consentModal?.acceptNecessaryBtn,
+					showPreferencesBtn:
+						content.value?.consentshowpreferencesbtn ||
+						sectionData.value?.translations?.consentModal?.showPreferencesBtn
 				},
 				preferencesModal: {
-					title: content.value?.preferencestitle || sectionData.value?.translations?.preferencesModal?.title,
-					acceptAllBtn: content.value?.preferencesacceptallbtn || sectionData.value?.translations?.preferencesModal?.acceptAllBtn,
-					acceptNecessaryBtn: content.value?.preferencesacceptnecessarybtn || sectionData.value?.translations?.preferencesModal?.acceptNecessaryBtn,
-					savePreferencesBtn: content.value?.preferencessavepreferencesbtn || sectionData.value?.translations?.preferencesModal?.savePreferencesBtn,
-					closeIconLabel: sectionData.value?.translations?.preferencesModal?.closeIconLabel,
+					title:
+						content.value?.preferencestitle ||
+						sectionData.value?.translations?.preferencesModal?.title,
+					acceptAllBtn:
+						content.value?.preferencesacceptallbtn ||
+						sectionData.value?.translations?.preferencesModal?.acceptAllBtn,
+					acceptNecessaryBtn:
+						content.value?.preferencesacceptnecessarybtn ||
+						sectionData.value?.translations?.preferencesModal
+							?.acceptNecessaryBtn,
+					savePreferencesBtn:
+						content.value?.preferencessavepreferencesbtn ||
+						sectionData.value?.translations?.preferencesModal
+							?.savePreferencesBtn,
+					closeIconLabel:
+						sectionData.value?.translations?.preferencesModal?.closeIconLabel,
 					sections: [
 						{
 							title: "Cookie Usage",
@@ -136,40 +169,57 @@ const config = computed(() => ({
 }))
 
 let ccInstance = null
+let isInitialized = false
 
-const initCookieConsent = () => {
-	// reset cookies and consent state
+const initCookieConsent = (showPreferences = false) => {
+	if (CookieConsent.hide) CookieConsent.hide()
+	if (CookieConsent.hidePreferences) CookieConsent.hidePreferences()
+
 	if (CookieConsent.validConsent && CookieConsent.validConsent()) {
-		// clear all accepted categories
 		CookieConsent.acceptCategory([])
-		// erase the cookie
 		if (CookieConsent.eraseCookies) {
 			CookieConsent.eraseCookies(config.value.cookie.name)
 		}
 	}
 
-	// reset the plugin
 	if (ccInstance || window.CookieConsent) {
 		CookieConsent.reset()
 	}
 
-	// run with new config and immediately show consent modal
 	CookieConsent.run(config.value).then(() => {
-		// show consent modal after initialization
-		if (CookieConsent.show) {
-			CookieConsent.show(true) // pass true to create modal if needed
+		if (showPreferences) {
+			if (CookieConsent.hide) {
+				CookieConsent.hide()
+			}
+			if (CookieConsent.showPreferences) {
+				CookieConsent.showPreferences()
+			}
+		} else {
+			if (CookieConsent.show) {
+				CookieConsent.show(true)
+			}
 		}
+
+		isInitialized = true
 	})
 
 	ccInstance = true
 }
 
 onMounted(() => {
-	initCookieConsent()
+	const unwatch = watch(
+		[() => content.value, () => sectionData.value?.translations],
+		([contentVal, translationsVal]) => {
+			if (contentVal && translationsVal) {
+				initCookieConsent()
+				unwatch()
+			}
+		},
+		{ immediate: true }
+	)
 })
 
 onUnmounted(() => {
-	// hide modals before cleanup
 	if (CookieConsent.hide) {
 		CookieConsent.hide()
 	}
@@ -177,7 +227,6 @@ onUnmounted(() => {
 		CookieConsent.hidePreferences()
 	}
 
-	// clean up on unmount
 	if (CookieConsent.validConsent && CookieConsent.validConsent()) {
 		CookieConsent.acceptCategory([])
 		if (CookieConsent.eraseCookies) {
@@ -189,31 +238,51 @@ onUnmounted(() => {
 	}
 })
 
-// watch for config changes and reinitialize
+let previousContent = {}
+
 watch(
-	config,
-	() => {
-		initCookieConsent()
+	() => content.value,
+	(newValue) => {
+		if (!isInitialized || !newValue) return
+
+		if (Object.keys(previousContent).length === 0) {
+			previousContent = { ...newValue }
+			return
+		}
+
+		const changedFields = []
+		for (const key in newValue) {
+			if (newValue[key] !== previousContent[key]) {
+				changedFields.push(key)
+			}
+		}
+		let preferencesChanged = false
+
+		for (const field of changedFields) {
+			if (field.toLowerCase().includes("preferences")) {
+				preferencesChanged = true
+				break
+			}
+		}
+
+		previousContent = { ...newValue }
+
+		initCookieConsent(preferencesChanged)
 	},
 	{ deep: true }
 )
 </script>
 
-<template>
-	<k-section>
-		<k-text>
-			{{
-				$t(
-					"crumble.stylePreview.info",
-					"The cookie consent banner is displayed on this page. Modify the settings to see changes in real-time."
-				)
-			}}
-		</k-text>
-	</k-section>
-</template>
+<template><div /></template>
 
 <style>
 #cc-main {
 	z-index: 9999;
+}
+
+#cc-main,
+#cc-main .cm,
+#cc-main .pm {
+	--cc-modal-transition-duration: 0;
 }
 </style>
