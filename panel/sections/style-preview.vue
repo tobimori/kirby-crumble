@@ -1,10 +1,11 @@
 <script setup>
 import { computed, onMounted, onUnmounted, watch } from "kirbyuse"
-import { useContent } from "kirbyuse"
+import { useContent, usePanel } from "kirbyuse"
 import "vanilla-cookieconsent/dist/cookieconsent.css"
 import * as CookieConsent from "vanilla-cookieconsent"
 
 const { currentContent: content } = useContent()
+const panel = usePanel()
 
 // compute the position based on layout type
 const consentPosition = computed(() => {
@@ -59,19 +60,19 @@ const config = computed(() => ({
 		translations: {
 			en: {
 				consentModal: {
-					title: "Cookie Consent Preview",
+					title: content.value?.consenttitle || panel.t('crumble.strings.consentModal.title'),
 					description:
-						"This is a preview of how your cookie consent banner will look.",
-					acceptAllBtn: "Accept all",
-					acceptNecessaryBtn: "Reject all",
-					showPreferencesBtn: "Manage preferences"
+						content.value?.consentdescription || panel.t('crumble.strings.consentModal.description'),
+					acceptAllBtn: content.value?.consentacceptallbtn || panel.t('crumble.strings.consentModal.acceptAllBtn'),
+					acceptNecessaryBtn: content.value?.consentacceptnecessarybtn || panel.t('crumble.strings.consentModal.acceptNecessaryBtn'),
+					showPreferencesBtn: content.value?.consentshowpreferencesbtn || panel.t('crumble.strings.consentModal.showPreferencesBtn')
 				},
 				preferencesModal: {
-					title: "Cookie Preferences",
-					acceptAllBtn: "Accept all",
-					acceptNecessaryBtn: "Reject all",
-					savePreferencesBtn: "Save preferences",
-					closeIconLabel: "Close",
+					title: content.value?.preferencestitle || panel.t('crumble.strings.preferencesModal.title'),
+					acceptAllBtn: content.value?.preferencesacceptallbtn || panel.t('crumble.strings.preferencesModal.acceptAllBtn'),
+					acceptNecessaryBtn: content.value?.preferencesacceptnecessarybtn || panel.t('crumble.strings.preferencesModal.acceptNecessaryBtn'),
+					savePreferencesBtn: content.value?.preferencessavepreferencesbtn || panel.t('crumble.strings.preferencesModal.savePreferencesBtn'),
+					closeIconLabel: panel.t('crumble.strings.preferencesModal.closeIconLabel'),
 					sections: [
 						{
 							title: "Cookie Usage",

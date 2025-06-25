@@ -8,6 +8,8 @@ Crumble is currently in Beta and free to try while we're actively developing it.
 
 The best approach is always to avoid having a 'cookie banner' altogether. But let's be real – sometimes you need them, be it just for iFrame embeds or other third-party scripts. Crumble provides a solid foundation for cookie consent, though remember that compliance ultimately depends on how you implement it. Crumble is provided 'as-is' with no warranty or guarantees. Read the [license agreement](https://plugins.andkindness.com/license-agreement) for more details.
 
+The included texts and translations are for illustrative purposes only and should not be considered legal guidance.
+
 If you need something more automated with legal guarantees, commercial services like [Cookiebot](https://www.cookiebot.com/) might be a better fit.
 
 ## What Crumble offers 

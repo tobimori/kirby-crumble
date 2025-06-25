@@ -1,0 +1,109 @@
+label: crumble.style
+icon: brush
+columns:
+  - width: 1/2
+    fields:
+      _consentModal2:
+        label: crumble.fields.consentModal
+        help: crumble.fields.consentModal.help
+        type: headline
+      consentLayout:
+        label: crumble.fields.layout
+        icon: layout
+        type: select
+        required: true
+        default: "box"
+        options:
+          "box":
+            "*": crumble.fields.layout.box
+          "box inline":
+            "*": crumble.fields.layout.boxInline
+          "box wide":
+            "*": crumble.fields.layout.boxWide
+          "cloud":
+            "*": crumble.fields.layout.cloud
+          "cloud inline":
+            "*": crumble.fields.layout.cloudInline
+          "bar":
+            "*": crumble.fields.layout.bar
+          "bar inline":
+            "*": crumble.fields.layout.barInline
+      consentPositionBox: &positionEdges
+        label: crumble.fields.position
+        icon: layout
+        type: select
+        default: "bottom left"
+        required: true
+        options:
+          "top left":
+            "*": crumble.fields.position.topLeft
+          "top center":
+            "*": crumble.fields.position.topCenter
+          "top right":
+            "*": crumble.fields.position.topRight
+          "middle left":
+            "*": crumble.fields.position.middleLeft
+          "middle center":
+            "*": crumble.fields.position.middleCenter
+          "middle right":
+            "*": crumble.fields.position.middleRight
+          "bottom left":
+            "*": crumble.fields.position.bottomLeft
+          "bottom center":
+            "*": crumble.fields.position.bottomCenter
+          "bottom right":
+            "*": crumble.fields.position.bottomRight
+        when:
+          consentLayout: box
+      consentPositionBoxInline:
+        <<: *positionEdges
+        when:
+          consentLayout: box inline
+      consentPositionBoxWide:
+        <<: *positionEdges
+        when:
+          consentLayout: box wide
+      flipButtons:
+        label: crumble.fields.flipButtons
+        type: toggle
+        default: false
+  - width: 1/2
+    fields:
+      _preferencesModal2:
+        label: crumble.fields.preferencesModal
+        help: crumble.fields.preferencesModal.help
+        type: headline
+      preferencesLayout:
+        label: crumble.fields.layout
+        icon: layout
+        type: select
+        required: true
+        default: bar
+        options:
+          "box":
+            "*": crumble.fields.layout.box
+          "bar":
+            "*": crumble.fields.layout.bar
+          "bar wide":
+            "*": crumble.fields.layout.barWide
+      preferencesPositionBar: &position
+        label: crumble.fields.position
+        icon: layout
+        type: select
+        default: left
+        required: true
+        options:
+          "left":
+            "*": crumble.fields.position.left
+          "right":
+            "*": crumble.fields.position.right
+        when:
+          preferencesLayout: bar
+      preferencesPositionBarWide:
+        <<: *position
+        when:
+          preferencesLayout: bar wide
+  - width: 1
+    sections:
+      preview:
+        type: crumble-style-preview

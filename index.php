@@ -6,6 +6,7 @@ use Kirby\Cms\App;
 use tobimori\Crumble\Models\CrumblePage;
 use Kirby\Data\Json;
 use tobimori\Crumble\ConsentManager;
+use tobimori\Crumble\Crumble;
 use tobimori\Crumble\Migrations\Migrator;
 
 if (
@@ -22,6 +23,10 @@ App::plugin(
 			'crumble' => CrumblePage::class,
 		],
 		'blueprints' => [
+			'crumble/tabs/log' => __DIR__ . '/blueprints/tabs/log.yml',
+			'crumble/tabs/texts' => __DIR__ . '/blueprints/tabs/texts.yml',
+			'crumble/tabs/categories' => __DIR__ . '/blueprints/tabs/categories.yml',
+			'crumble/tabs/style' => __DIR__ . '/blueprints/tabs/style.yml',
 			'pages/crumble' => __DIR__ . '/blueprints/page.yml',
 		],
 		'sections' => [
@@ -78,11 +83,17 @@ App::plugin(
 		],
 		'hooks' => [
 			'system.loadPlugins:after' => function () {
+				// force page to exist
+				Crumble::install();
+
 				// run migrations
 				Migrator::migrate();
 			}
 		],
 		'options' => [
+			'gtm' => null, // if specified, will this will force use GTM specific categories + services
+			'categories' => null, // allows 'forcing' specific configuration in backend
+
 			// database configuration
 			'database' => [
 				'type' => 'sqlite',
@@ -90,35 +101,22 @@ App::plugin(
 					'path' => null // defaults to kirby()->root('logs') . '/crumble/consent.sqlite'
 				],
 				'mysql' => [
-					'host' => 'localhost',
+					'host' => 'localhost', // TODO: use global kirby DB config
 					'port' => 3306,
 					'database' => 'kirby',
 					'user' => 'root',
 					'password' => ''
 				]
 			],
-			// privacy settings
-			'privacy' => [
-				'hashIp' => true,
-				'salt' => null // will use kirby's salt by default
-			],
-			// consent settings
-			'consent' => [
-				'version' => '1.0',
-				'expiresAfter' => 365 // days
-			],
+			'page' => 'page://crumble',
+			'ipHash' => null, // if specified, this will has IP addresses
+			'expiresAfter' => 365, // days
+
 			// geolocation settings
 			'geo' => [
 				'header' => null, // custom header name (e.g. 'X-Vercel-IP-Country')
 				'resolver' => null, // callback function to resolve IP to country
 				'geocoder' => null // callable that returns a Geocoder instance
-				/* Example geocoder config:
-				'geocoder' => function() {
-					$adapter = new \Http\Adapter\Guzzle7\Client();
-					$provider = new \Geocoder\Provider\IpInfo\IpInfo($adapter, 'your-api-key');
-					return new \Geocoder\StatefulGeocoder($provider);
-				}
-				*/
 			]
 		]
 	]

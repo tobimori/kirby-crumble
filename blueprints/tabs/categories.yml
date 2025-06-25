@@ -1,0 +1,40 @@
+label: crumble.categories
+icon: checklist
+
+fields:
+  categories:
+    label: crumble.fields.content
+    type: blocks
+    fieldsets:
+      category:
+        icon: tag
+        label: "{{ name }}"
+        preview: fields
+        wysiwyg: true
+        fields:
+          name:
+            label: crumble.fields.category.name.label
+            type: text
+            width: 2/3
+            required: true
+          id:
+            label: crumble.fields.category.id.label
+            type: slug
+            translate: false
+            wizard:
+              field: name
+              text: Generate
+            width: 1/3
+            required: true
+            help: crumble.fields.category.id.help
+          description:
+            label: crumble.fields.category.description.label
+            type: text
+          services:
+            label: crumble.fields.category.services.label
+            type: entries
+            field: text
+          cookies:
+            label: crumble.fields.category.cookies.label
+            type: structure
+            field: text

@@ -1,0 +1,8 @@
+label: crumble.log
+icon: info-card
+
+sections:
+  license:
+    type: crumble-license
+  log:
+    type: crumble-log
