@@ -19,7 +19,8 @@
 		"prettier": "^3.5.3"
 	},
 	"dependencies": {
-		"kirbyuse": "^0.12.1"
+		"kirbyuse": "^0.12.1",
+		"vanilla-cookieconsent": "^3.1.0"
 	},
 	"browserslist": [
 		"last 2 Android versions",

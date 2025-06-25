@@ -20,6 +20,11 @@
 		"php": ">=8.3.0",
 		"getkirby/composer-installer": "^1.2.1"
 	},
+	"suggest": {
+		"geocoder-php/geocoder": "For automatic IP-based geolocation detection",
+		"geocoder-php/ipinfo-provider": "IP geolocation provider for Geocoder",
+		"geocoder-php/geoip2-provider": "MaxMind GeoIP2 provider for Geocoder"
+	},
 	"scripts": {
 		"dist": "composer install --no-dev --optimize-autoloader",
 		"fix": "php-cs-fixer fix"

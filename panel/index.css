@@ -1,0 +1,9 @@
+[data-template="crumble"] {
+	.k-block-name {
+		display: none;
+	}
+
+	.k-block-label {
+		color: var(--color-text);
+	}
+}
