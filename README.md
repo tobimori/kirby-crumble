@@ -21,7 +21,7 @@ If you need something more automated with legal guarantees, commercial services 
 Here's what you should know before choosing Crumble:
 
 - **Manual setup required**: Your editors need to understand cookie categories and add them manually – there's no automatic cookie scanning
-- **Developer needed**: You'll likely need a developer to integrate scripts properly ([see how](https://cookieconsent.orestbida.com/advanced/manage-scripts.html))
+- **Developer needed**: You'll likely need a developer to integrate scripts properly ([see how](https://cookieconsent.orestbida.com/advanced/manage-scripts.html)) - unless you're using GTM mode
 - **iFrames need extra work**: Things like YouTube embeds require additional setup with [iFrame Manager](https://cookieconsent.orestbida.com/advanced/iframemanager-setup.html) or a similar solution
 - **Not Google-certified**: If you're running Google ads (AdSense, Ad Manager, AdMob), you'll need a [Google Certified CMP](https://support.google.com/adsense/answer/13554020?hl=en&ref_topic=10924967&sjid=11075614997312658217-NA) instead
 
