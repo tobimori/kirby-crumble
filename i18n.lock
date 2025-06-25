@@ -11,15 +11,24 @@ checksums:
     crumble.fields.preferencesModal: e44beef579fd73e8d68761aeb450346e
     crumble.fields.preferencesModal.help: bc3a05b543094d8480f7d22a465e0d13
     crumble.fields.flipButtons: d3464f16ae4d27cfdaf18e66b019befb
+    crumble.fields.disablePageInteraction: 749fd22fdda64166e8b4ebc82678604e
+    crumble.fields.disablePageInteraction.help: 7759d1936d78d55d167c02f99a277afc
     crumble.fields.layout: 8ab849bdcd801c13e7e85474299e4ee8
     crumble.fields.layout.box: 819d9ea2df7f39ff43e496c8e378990a
     crumble.fields.layout.bar: 06c6871083f76c237d5881f91789885b
+    crumble.fields.size: 227fadeeff951e041ff42031a11a4626
+    crumble.fields.size.default: d9c6dc5c412fe94143dfd1d332ec81d4
+    crumble.fields.size.wide: c6777426a822d7d1b7d2010ce824ad7d
     crumble.fields.layout.barWide: f0cb1c5eeb6426eedb0cab0eaf614c34
     crumble.fields.layout.barInline: 8c3de292e1fd136ef3ba6c7ad941652a
     crumble.fields.layout.boxInline: c04e1bca8a9f79674cb18fd00f2f3a22
     crumble.fields.layout.boxWide: 4fbc6688a210fdb73b82840f4a798847
     crumble.fields.layout.cloud: ad5f56ebd5ba9ff68f0b347e8b8e65e9
     crumble.fields.layout.cloudInline: c6e1588ffdd2830eca024a1743ace972
+    crumble.fields.variant: e9e072f47ce53e126135d6be0ed55e41
+    crumble.fields.variant.default: d9c6dc5c412fe94143dfd1d332ec81d4
+    crumble.fields.variant.inline: b29b97783486f308106ae8cc0f5bcc2e
+    crumble.fields.variant.wide: c6777426a822d7d1b7d2010ce824ad7d
     crumble.fields.position: 8ba464c700080c55106d9e680b4b37e5
     crumble.fields.position.left: f849afc23c62251a3c18c39642ea1955
     crumble.fields.position.right: d2ecd32a214b897f3edddb395a04253d
@@ -35,14 +44,21 @@ checksums:
     crumble.fields.position.bottomCenter: 0a159b8ca651ad0670ce7e541cd1d12c
     crumble.fields.position.bottomRight: aaef9a70ef795affc806c6d1853d8373
     crumble.fields.content: becce3fd5723353df715552b06b4a1e1
-    crumble.fields.category.name.label: cbd957227fae6d91baec164eba889680
+    crumble.fields.category.name.label: 9368b5a047572b6051f334af5aa76819
     crumble.fields.category.description.label: e17686a22ffad04cc7bb70524ed4478b
     crumble.fields.category.services.label: 8ea10b45b9abab2a3bfc3c07e1c9cdc6
     crumble.fields.category.cookies.label: 09fa197d6544120e81578268469ab18e
     crumble.fields.category.id.label: a45215b3aa061111b7132932edf4808b
     crumble.fields.category.id.wizard: 0345bf322c191e70d01fd6607ec5c2f8
+    crumble.fields.category.domain.label: 402d46965eacc3af4c5df92e53e95712
+    crumble.fields.category.expiration.label: ae95c3fff4ffd087a40fc824b67389cc
+    crumble.fields.category.autoDelete.label: c7e5747ba7223398ea0877447a158eb3
     crumble.fields.category.id.help: d49c18ce915ff4a4157e15c522197985
+    crumble.fields.category.mandatory.label: 42ffec30bbf512d8d9f169a231966629
+    crumble.fields.category.mandatory.help: 9198b5ff25a92b514b8cd92dc1c56ea4
     crumble.fields.title.label: 344e64395eaff6822a57d18623853e1a
+    crumble.fields.buttons: a17d01d48d06c3cc55aa722cefd04929
+    crumble.fields.buttons.help: e90e9ca2bdde57dfc49ea9f33cc72f20
     crumble.fields.description.label: e17686a22ffad04cc7bb70524ed4478b
     crumble.fields.acceptAll.label: d0ceaf6a090075602a3d44626dff2c88
     crumble.fields.acceptNecessary.label: 4f14ba3c02ce8942ada37ddfa65f8aaf

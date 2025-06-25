@@ -27,6 +27,7 @@ App::plugin(
 			'crumble/tabs/texts' => __DIR__ . '/blueprints/tabs/texts.yml',
 			'crumble/tabs/categories' => __DIR__ . '/blueprints/tabs/categories.yml',
 			'crumble/tabs/style' => __DIR__ . '/blueprints/tabs/style.yml',
+			'crumble/fields/writer' => require_once __DIR__ . '/blueprints/fields/writer.php',
 			'pages/crumble' => __DIR__ . '/blueprints/page.yml',
 		],
 		'sections' => [
@@ -114,6 +115,7 @@ App::plugin(
 		'options' => [
 			'gtm' => null, // if specified, will this will force use GTM specific categories + services
 			'categories' => null, // allows 'forcing' specific configuration in backend
+			'marks' => ['bold', 'link'],
 
 			// database configuration
 			'database' => [
