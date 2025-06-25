@@ -9,60 +9,99 @@ columns:
         type: headline
       consentLayout:
         label: crumble.fields.layout
-        icon: layout
-        type: select
+        type: toggles
         required: true
         default: "box"
         options:
-          "box":
-            "*": crumble.fields.layout.box
-          "box inline":
-            "*": crumble.fields.layout.boxInline
-          "box wide":
-            "*": crumble.fields.layout.boxWide
-          "cloud":
-            "*": crumble.fields.layout.cloud
-          "cloud inline":
-            "*": crumble.fields.layout.cloudInline
-          "bar":
-            "*": crumble.fields.layout.bar
-          "bar inline":
-            "*": crumble.fields.layout.barInline
-      consentPositionBox: &positionEdges
-        label: crumble.fields.position
-        icon: layout
-        type: select
-        default: "bottom left"
+          - value: box
+            text:
+              "*": crumble.fields.layout.box
+          - value: cloud
+            text:
+              "*": crumble.fields.layout.cloud
+          - value: bar
+            text:
+              "*": crumble.fields.layout.bar
+      consentBoxVariant:
+        label: crumble.fields.variant
+        type: toggles
+        default: "default"
         required: true
         options:
-          "top left":
-            "*": crumble.fields.position.topLeft
-          "top center":
-            "*": crumble.fields.position.topCenter
-          "top right":
-            "*": crumble.fields.position.topRight
-          "middle left":
-            "*": crumble.fields.position.middleLeft
-          "middle center":
-            "*": crumble.fields.position.middleCenter
-          "middle right":
-            "*": crumble.fields.position.middleRight
-          "bottom left":
-            "*": crumble.fields.position.bottomLeft
-          "bottom center":
-            "*": crumble.fields.position.bottomCenter
-          "bottom right":
-            "*": crumble.fields.position.bottomRight
+          - value: default
+            text:
+              "*": crumble.fields.variant.default
+          - value: inline
+            text:
+              "*": crumble.fields.variant.inline
+          - value: wide
+            text:
+              "*": crumble.fields.variant.wide
         when:
           consentLayout: box
-      consentPositionBoxInline:
-        <<: *positionEdges
+      consentCloudButtons: &buttons
+        label: crumble.fields.buttons
+        help: crumble.fields.buttons.help
+        type: toggle
         when:
-          consentLayout: box inline
-      consentPositionBoxWide:
-        <<: *positionEdges
+          consentLayout: cloud
+      consentBarButtons:
+        <<: *buttons
         when:
-          consentLayout: box wide
+          consentLayout: bar
+      consentBoxPosition: &position
+        label: crumble.fields.position
+        type: toggles
+        default: bottom
+        required: true
+        options:
+          - value: top left
+            text:
+              "*": crumble.fields.position.topLeft
+          - value: top center
+            text:
+              "*": crumble.fields.position.topCenter
+          - value: top right
+            text:
+              "*": crumble.fields.position.topRight
+          - value: middle left
+            text:
+              "*": crumble.fields.position.middleLeft
+          - value: middle center
+            text:
+              "*": crumble.fields.position.middleCenter
+          - value: middle right
+            text:
+              "*": crumble.fields.position.middleRight
+          - value: bottom left
+            text:
+              "*": crumble.fields.position.bottomLeft
+          - value: bottom center
+            text:
+              "*": crumble.fields.position.bottomCenter
+          - value: bottom right
+            text:
+              "*": crumble.fields.position.bottomRight
+        when:
+          consentLayout: box
+      consentCloudPosition:
+        <<: *position
+        when:
+          consentLayout: cloud
+      consentBarPosition:
+        label: crumble.fields.position
+        type: toggles
+        default: bottom
+        required: true
+        options:
+          - value: bottom
+            text:
+              "*": crumble.fields.position.bottom
+          - value: top
+            text:
+              "*": crumble.fields.position.top
+        when:
+          consentLayout: bar
       flipButtons:
         label: crumble.fields.flipButtons
         type: toggle
@@ -75,34 +114,44 @@ columns:
         type: headline
       preferencesLayout:
         label: crumble.fields.layout
-        icon: layout
-        type: select
+        type: toggles
         required: true
         default: bar
         options:
-          "box":
-            "*": crumble.fields.layout.box
-          "bar":
-            "*": crumble.fields.layout.bar
-          "bar wide":
-            "*": crumble.fields.layout.barWide
-      preferencesPositionBar: &position
+          - value: box
+            text:
+              "*": crumble.fields.layout.box
+          - value: bar
+            text:
+              "*": crumble.fields.layout.bar
+      preferencesSize:
+        label: crumble.fields.size
+        type: toggles
+        default: default
+        required: true
+        options:
+          - value: default
+            text:
+              "*": crumble.fields.size.default
+          - value: wide
+            text:
+              "*": crumble.fields.size.wide
+        when:
+          preferencesLayout: bar
+      preferencesPosition:
         label: crumble.fields.position
-        icon: layout
-        type: select
+        type: toggles
         default: left
         required: true
         options:
-          "left":
-            "*": crumble.fields.position.left
-          "right":
-            "*": crumble.fields.position.right
+          - value: left
+            text:
+              "*": crumble.fields.position.left
+          - value: right
+            text:
+              "*": crumble.fields.position.right
         when:
           preferencesLayout: bar
-      preferencesPositionBarWide:
-        <<: *position
-        when:
-          preferencesLayout: bar wide
   - width: 1
     sections:
       preview:

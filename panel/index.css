@@ -6,4 +6,11 @@
 	.k-block-label {
 		color: var(--color-text);
 	}
+
+	.k-field-name-consentboxposition,
+	.k-field-name-consentcloudposition {
+		.k-toggles-input ul {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
 }

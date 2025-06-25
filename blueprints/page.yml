@@ -3,6 +3,7 @@ label: crumble.consent
 buttons:
   - crumble-export
   - crumble-search
+  - languages
 
 options:
   preview: false

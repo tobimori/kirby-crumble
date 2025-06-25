@@ -1,11 +1,42 @@
 <script setup>
-import { computed, onMounted, onUnmounted, watch } from "kirbyuse"
-import { useContent, usePanel } from "kirbyuse"
+import { computed, onMounted, onUnmounted, watch, ref } from "kirbyuse"
+import { useContent, useSection, usePanel } from "kirbyuse"
+import { section } from "kirbyuse/props"
 import "vanilla-cookieconsent/dist/cookieconsent.css"
 import * as CookieConsent from "vanilla-cookieconsent"
 
+const props = defineProps({
+	...section
+})
+
 const { currentContent: content } = useContent()
+const { load } = useSection()
 const panel = usePanel()
+const sectionData = ref({})
+
+// function to load section data
+const loadSectionData = async () => {
+	const response = await load({
+		parent: props.parent,
+		name: props.name
+	})
+	console.log('Section data loaded:', response)
+	sectionData.value = response
+}
+
+// initial load
+loadSectionData()
+
+// watch for language changes and reload section data
+watch(() => panel.language.code, async (newLang, oldLang) => {
+	console.log('Language changed from', oldLang, 'to', newLang)
+	await loadSectionData()
+	// reinitialize cookie consent with new translations
+	if (ccInstance) {
+		ccInstance.hide()
+		initCookieConsent()
+	}
+})
 
 // compute the position based on layout type
 const consentPosition = computed(() => {
@@ -56,23 +87,23 @@ const config = computed(() => ({
 		marketing: {}
 	},
 	language: {
-		default: "en",
+		default: 'x-default',
 		translations: {
-			en: {
+			'x-default': {
 				consentModal: {
-					title: content.value?.consenttitle || panel.t('crumble.strings.consentModal.title'),
+					title: content.value?.consenttitle || sectionData.value?.translations?.consentModal?.title,
 					description:
-						content.value?.consentdescription || panel.t('crumble.strings.consentModal.description'),
-					acceptAllBtn: content.value?.consentacceptallbtn || panel.t('crumble.strings.consentModal.acceptAllBtn'),
-					acceptNecessaryBtn: content.value?.consentacceptnecessarybtn || panel.t('crumble.strings.consentModal.acceptNecessaryBtn'),
-					showPreferencesBtn: content.value?.consentshowpreferencesbtn || panel.t('crumble.strings.consentModal.showPreferencesBtn')
+						content.value?.consentdescription || sectionData.value?.translations?.consentModal?.description,
+					acceptAllBtn: content.value?.consentacceptallbtn || sectionData.value?.translations?.consentModal?.acceptAllBtn,
+					acceptNecessaryBtn: content.value?.consentacceptnecessarybtn || sectionData.value?.translations?.consentModal?.acceptNecessaryBtn,
+					showPreferencesBtn: content.value?.consentshowpreferencesbtn || sectionData.value?.translations?.consentModal?.showPreferencesBtn
 				},
 				preferencesModal: {
-					title: content.value?.preferencestitle || panel.t('crumble.strings.preferencesModal.title'),
-					acceptAllBtn: content.value?.preferencesacceptallbtn || panel.t('crumble.strings.preferencesModal.acceptAllBtn'),
-					acceptNecessaryBtn: content.value?.preferencesacceptnecessarybtn || panel.t('crumble.strings.preferencesModal.acceptNecessaryBtn'),
-					savePreferencesBtn: content.value?.preferencessavepreferencesbtn || panel.t('crumble.strings.preferencesModal.savePreferencesBtn'),
-					closeIconLabel: panel.t('crumble.strings.preferencesModal.closeIconLabel'),
+					title: content.value?.preferencestitle || sectionData.value?.translations?.preferencesModal?.title,
+					acceptAllBtn: content.value?.preferencesacceptallbtn || sectionData.value?.translations?.preferencesModal?.acceptAllBtn,
+					acceptNecessaryBtn: content.value?.preferencesacceptnecessarybtn || sectionData.value?.translations?.preferencesModal?.acceptNecessaryBtn,
+					savePreferencesBtn: content.value?.preferencessavepreferencesbtn || sectionData.value?.translations?.preferencesModal?.savePreferencesBtn,
+					closeIconLabel: sectionData.value?.translations?.preferencesModal?.closeIconLabel,
 					sections: [
 						{
 							title: "Cookie Usage",
