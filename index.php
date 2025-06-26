@@ -29,6 +29,7 @@ App::plugin(
 			'crumble/tabs/style' => __DIR__ . '/blueprints/tabs/style.yml',
 			'crumble/fields/writer' => require_once __DIR__ . '/blueprints/fields/writer.php',
 			'pages/crumble' => __DIR__ . '/blueprints/page.yml',
+			'pages/crumble-category' => __DIR__ . '/blueprints/category.yml',
 		],
 		'sections' => [
 			'crumble-license' => [],
