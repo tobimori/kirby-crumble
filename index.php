@@ -8,6 +8,8 @@ use Kirby\Data\Json;
 use tobimori\Crumble\ConsentManager;
 use tobimori\Crumble\Crumble;
 use tobimori\Crumble\Migrations\Migrator;
+use tobimori\Crumble\Models\CrumbleCategoryPage;
+use Kirby\Http\Response;
 
 if (
 	version_compare(App::version() ?? '0.0.0', '5.0.0', '<') === true ||
@@ -21,6 +23,12 @@ App::plugin(
 	extends: [
 		'pageModels' => [
 			'crumble' => CrumblePage::class,
+			'crumble-category' => CrumbleCategoryPage::class,
+		],
+		'permissions' => [
+			'access' => true,
+			'update' => true,
+			'delete' => true
 		],
 		'blueprints' => [
 			'crumble/tabs/log' => __DIR__ . '/blueprints/tabs/log.yml',
@@ -28,8 +36,14 @@ App::plugin(
 			'crumble/tabs/categories' => __DIR__ . '/blueprints/tabs/categories.yml',
 			'crumble/tabs/style' => __DIR__ . '/blueprints/tabs/style.yml',
 			'crumble/fields/writer' => require_once __DIR__ . '/blueprints/fields/writer.php',
+			'crumble/fields/services' => __DIR__ . '/blueprints/fields/services.yml',
+			'crumble/fields/cookies' => __DIR__ . '/blueprints/fields/cookies.yml',
 			'pages/crumble' => __DIR__ . '/blueprints/page.yml',
 			'pages/crumble-category' => __DIR__ . '/blueprints/category.yml',
+		],
+		'snippets' => [
+			'crumble/script' => __DIR__ . '/snippets/script.php',
+			'crumble/consent.js' => __DIR__ . '/snippets/consent.js.php',
 		],
 		'sections' => [
 			'crumble-license' => [],
@@ -101,6 +115,44 @@ App::plugin(
 				'method' => 'GET',
 				'action' => function ($consentId) {
 					return ConsentManager::export($consentId);
+				}
+			],
+			[
+				'pattern' => 'crumble/config.json',
+				'method' => 'GET',
+				'action' => function () {
+					$page = site()->find(option('tobimori.crumble.page'));
+					if (!$page) {
+						return Response::json(['error' => 'Configuration not found'], 404);
+					}
+
+					return Response::json($page->config());
+				}
+			],
+			[
+				'pattern' => 'crumble/consent.js',
+				'method' => 'GET',
+				'action' => function () {
+					$page = site()->find(option('tobimori.crumble.page'));
+					if (!$page) {
+						return new Response('// Configuration not found', 'application/javascript', 404);
+					}
+
+					// Redirect to versioned URL
+					return go('crumble/consent.' . $page->revision() . '.js');
+				}
+			],
+			[
+				'pattern' => 'crumble/consent.(:num).js',
+				'method' => 'GET',
+				'action' => function ($revision) {
+					$page = site()->find(option('tobimori.crumble.page'));
+					if (!$page) {
+						return new Response('// Configuration not found', 'application/javascript', 404);
+					}
+
+					$content = snippet('crumble/consent.js', ['page' => $page, 'plugin' => kirby()->plugin('tobimori/crumble')], true);
+					return new Response($content, 'application/javascript');
 				}
 			]
 		],

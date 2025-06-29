@@ -6,7 +6,9 @@
 		"lint": "eslint \"panel/**/*.{js,vue}\"",
 		"lint:fix": "npm run lint -- --fix",
 		"format": "prettier --write \"panel/**/*.{js,vue}\"",
-		"prepare": "husky"
+		"copy-assets": "mkdir -p assets && cp node_modules/vanilla-cookieconsent/dist/cookieconsent.esm.js assets/ && cp node_modules/vanilla-cookieconsent/dist/cookieconsent.css assets/",
+		"prepare": "husky && npm run copy-assets",
+		"postinstall": "npm run copy-assets"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.28.0",

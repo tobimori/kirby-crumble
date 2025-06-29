@@ -20,7 +20,6 @@ final class Crumble
 		return $option;
 	}
 
-
 	/**
 	 * Create the crumble page if it doesn't exist yet
 	 */

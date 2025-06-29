@@ -1,0 +1,25 @@
+label: crumble.fields.category.cookies.label
+type: structure
+columns:
+  name:
+    width: 1/2
+  domain:
+    width: 1/2
+fields:
+  name:
+    label: crumble.fields.category.name.label
+    type: text
+    required: true
+  domain:
+    label: crumble.fields.category.domain.label
+    type: text
+    required: true
+  description:
+    label: crumble.fields.category.description.label
+    extends: crumble/fields/writer
+  expiration:
+    label: crumble.fields.category.expiration.label
+    type: text
+  autoDelete:
+    label: crumble.fields.category.autoDelete.label
+    type: toggle
