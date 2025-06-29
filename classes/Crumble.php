@@ -35,7 +35,7 @@ final class Crumble
 	 */
 	public static function page(): ?Page
 	{
-		return site()->find(static::option('page'));
+		return App::instance()->site()->find(static::option('page'));
 	}
 
 	/**

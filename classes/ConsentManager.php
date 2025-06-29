@@ -228,8 +228,6 @@ class ConsentManager
 	 */
 	public static function hasConsent(string $category, ?string $service = null): bool
 	{
-		static::trackUsage();
-
 		if (!static::hasConsentForCategory($category)) {
 			return false;
 		}
@@ -246,8 +244,6 @@ class ConsentManager
 	 */
 	public static function hasConsentForCategory(string $category): bool
 	{
-		static::trackUsage();
-
 		$cookieData = static::getCookieData();
 		if (!$cookieData) {
 			return false;
@@ -267,8 +263,6 @@ class ConsentManager
 	 */
 	public static function hasConsentForService(string $service): bool
 	{
-		static::trackUsage();
-
 		$cookieData = static::getCookieData();
 		if (!$cookieData) {
 			return false;
@@ -288,8 +282,6 @@ class ConsentManager
 	 */
 	public static function hasAnyConsent(): bool
 	{
-		static::trackUsage();
-
 		$cookieData = static::getCookieData();
 		if (!$cookieData) {
 			return false;
@@ -309,8 +301,6 @@ class ConsentManager
 	 */
 	public static function hasFullConsent(): bool
 	{
-		static::trackUsage();
-
 		$cookieData = static::getCookieData();
 		if (!$cookieData) {
 			return false;
@@ -375,6 +365,8 @@ class ConsentManager
 	 */
 	protected static function getCookieData(): ?array
 	{
+		static::trackUsage();
+
 		$cookie = $_COOKIE['cc_cookie'] ?? null;
 		if (!$cookie) {
 			return null;

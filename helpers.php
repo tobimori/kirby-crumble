@@ -12,7 +12,7 @@ if (!function_exists('consent')) {
 	 */
 	function consent(string $category, ?string $service = null): bool
 	{
-		// handle special cases
+		if ($category === 'any') {
 			return ConsentManager::hasAnyConsent();
 		}
 
