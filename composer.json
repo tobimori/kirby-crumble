@@ -14,7 +14,10 @@
 	"autoload": {
 		"psr-4": {
 			"tobimori\\Crumble\\": "classes"
-		}
+		},
+		"files": [
+			"helpers.php"
+		]
 	},
 	"require": {
 		"php": ">=8.3.0",

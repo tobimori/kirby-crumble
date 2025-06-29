@@ -6,6 +6,10 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit12d5adb5048b6b70bbc620c894f4f9e2
 {
+    public static $files = array (
+        'cbc92ce59a7904def78e72929160b93d' => __DIR__ . '/../..' . '/helpers.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         't' => 
         array (
@@ -34,7 +38,17 @@ class ComposerStaticInit12d5adb5048b6b70bbc620c894f4f9e2
         'Kirby\\ComposerInstaller\\Installer' => __DIR__ . '/..' . '/getkirby/composer-installer/src/ComposerInstaller/Installer.php',
         'Kirby\\ComposerInstaller\\Plugin' => __DIR__ . '/..' . '/getkirby/composer-installer/src/ComposerInstaller/Plugin.php',
         'Kirby\\ComposerInstaller\\PluginInstaller' => __DIR__ . '/..' . '/getkirby/composer-installer/src/ComposerInstaller/PluginInstaller.php',
+        'tobimori\\Crumble\\ConsentManager' => __DIR__ . '/../..' . '/classes/ConsentManager.php',
         'tobimori\\Crumble\\Crumble' => __DIR__ . '/../..' . '/classes/Crumble.php',
+        'tobimori\\Crumble\\Log\\Log' => __DIR__ . '/../..' . '/classes/Log/Log.php',
+        'tobimori\\Crumble\\Log\\LogMysql' => __DIR__ . '/../..' . '/classes/Log/LogMysql.php',
+        'tobimori\\Crumble\\Log\\LogSqlite' => __DIR__ . '/../..' . '/classes/Log/LogSqlite.php',
+        'tobimori\\Crumble\\Migrations\\Migration' => __DIR__ . '/../..' . '/classes/Migrations/Migration.php',
+        'tobimori\\Crumble\\Migrations\\Migrator' => __DIR__ . '/../..' . '/classes/Migrations/Migrator.php',
+        'tobimori\\Crumble\\Migrations\\migrations\\Migration001CreateConsentLogsTable' => __DIR__ . '/../..' . '/classes/Migrations/migrations/Migration001CreateConsentLogsTable.php',
+        'tobimori\\Crumble\\Models\\CrumbleCategoryPage' => __DIR__ . '/../..' . '/classes/Models/CrumbleCategoryPage.php',
+        'tobimori\\Crumble\\Models\\CrumblePage' => __DIR__ . '/../..' . '/classes/Models/CrumblePage.php',
+        'tobimori\\Crumble\\Support\\Menu' => __DIR__ . '/../..' . '/classes/Support/Menu.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

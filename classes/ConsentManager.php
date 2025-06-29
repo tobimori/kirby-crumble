@@ -7,6 +7,9 @@ use tobimori\Crumble\Log\Log;
 
 class ConsentManager
 {
+	private static ?array $validationCache = null;
+	private static ?array $categoriesCache = null;
+
 	/**
 	 * Record consent from frontend
 	 */
@@ -18,28 +21,32 @@ class ConsentManager
 		}
 
 		$data = json_decode(urldecode($cookie), true);
-		if (!$data) {
+		if (!$data || !is_array($data)) {
 			throw new \Exception('Invalid cookie data');
+		}
+
+		if (!isset($data['consentId']) || !is_string($data['consentId'])) {
+			throw new \Exception('Invalid consent ID in cookie');
+		}
+
+		if (isset($data['categories']) && !is_array($data['categories'])) {
+			$data['categories'] = [];
+		}
+		if (isset($data['services']) && !is_array($data['services'])) {
+			$data['services'] = [];
 		}
 
 		$kirby = App::instance();
 
-		// Determine accept type
 		$acceptType = 'necessary';
 		$acceptedCategories = $data['categories'] ?? [];
 
 		if (!empty($acceptedCategories)) {
-			$page = Crumble::page();
-			if ($page) {
-				$allCategories = $page->children()
-					->filterBy('intendedTemplate', 'crumble-category')
-					->filterBy('mandatory', false)
-					->pluck('slug');
+			$allCategories = static::getOptionalCategories();
 
-				$acceptType = $allCategories == $acceptedCategories ? 'all' : 'custom';
-			} else {
-				$acceptType = 'custom';
-			}
+			// compare arrays in an order-independent way
+			$isAll = empty(array_diff($allCategories, $acceptedCategories)) && empty(array_diff($acceptedCategories, $allCategories));
+			$acceptType = $isAll ? 'all' : 'custom';
 		}
 
 		Log::instance()->insert([
@@ -62,72 +69,10 @@ class ConsentManager
 	}
 
 	/**
-	 * Validate consent status
-	 */
-	public static function validate(string|null $consentId = null): array
-	{
-		// get consent data from cc_cookie first
-		$cookieData = static::getCookieData();
-
-		if (!$consentId) {
-			$consentId = $cookieData['consentId'] ?? null;
-		}
-
-		if (!$consentId) {
-			return ['valid' => false, 'reason' => 'no_consent'];
-		}
-
-		// check if cookie is expired
-		if ($cookieData && isset($cookieData['expirationTime'])) {
-			if ($cookieData['expirationTime'] < time() * 1000) { // js timestamp is in milliseconds
-				return ['valid' => false, 'reason' => 'expired'];
-			}
-		}
-
-		// optionally check database for withdrawn status
-		$log = Log::instance();
-		$consent = $log->findLatestByConsentId($consentId);
-
-		if ($consent && $consent['action'] === 'withdrawn') {
-			return ['valid' => false, 'reason' => 'withdrawn'];
-		}
-
-		// if we have cookie data, use that as primary source
-		if ($cookieData) {
-			return [
-				'valid' => true,
-				'consent' => [
-					'acceptedCategories' => $cookieData['categories'] ?? [],
-					'acceptedServices' => $cookieData['services'] ?? [],
-					'timestamp' => $cookieData['consentTimestamp'] ?? null,
-					'expiresAt' => isset($cookieData['expirationTime']) ? date('Y-m-d H:i:s', $cookieData['expirationTime'] / 1000) : null
-				]
-			];
-		}
-
-		// fallback to database if no cookie
-		if (!$consent) {
-			return ['valid' => false, 'reason' => 'not_found'];
-		}
-
-		return [
-			'valid' => true,
-			'consent' => [
-				'acceptType' => $consent['accept_type'],
-				'acceptedCategories' => json_decode($consent['accepted_categories'], true),
-				'acceptedServices' => json_decode($consent['accepted_services'], true),
-				'timestamp' => $consent['timestamp'],
-				'expiresAt' => $consent['expires_at']
-			]
-		];
-	}
-
-	/**
 	 * Withdraw consent
 	 */
 	public static function withdraw(string|null $consentId = null): bool
 	{
-		// get consent id from cc_cookie if not provided
 		if (!$consentId) {
 			$cookieData = static::getCookieData();
 			$consentId = $cookieData['consentId'] ?? null;
@@ -137,7 +82,6 @@ class ConsentManager
 			return false;
 		}
 
-		// record withdrawal in database for audit trail
 		$kirby = App::instance();
 		$log = Log::instance();
 		$log->insert([
@@ -155,40 +99,7 @@ class ConsentManager
 			'expires_at' => date('Y-m-d H:i:s')
 		]);
 
-		// note: cc_cookie should be cleared by the frontend library
 		return true;
-	}
-
-	/**
-	 * Get consent status
-	 */
-	public static function getStatus(string|null $consentId = null): ?array
-	{
-		// get consent data from cc_cookie first
-		$cookieData = static::getCookieData();
-
-		if (!$consentId) {
-			$consentId = $cookieData['consentId'] ?? null;
-		}
-
-		if (!$consentId) {
-			return null;
-		}
-
-		// check database for additional info
-		$log = Log::instance();
-		$dbRecord = $log->findLatestByConsentId($consentId);
-
-		// merge cookie and database data, preferring cookie data
-		if ($cookieData && $dbRecord) {
-			return array_merge($dbRecord, [
-				'categories' => $cookieData['categories'] ?? [],
-				'services' => $cookieData['services'] ?? [],
-				'revision' => $cookieData['revision'] ?? null
-			]);
-		}
-
-		return $dbRecord;
 	}
 
 	/**
@@ -208,6 +119,255 @@ class ConsentManager
 			}, $history),
 			'exportedAt' => date('Y-m-d H:i:s')
 		];
+	}
+
+	/**
+	 * Validate consent status
+	 */
+	public static function validate(string|null $consentId = null): array
+	{
+		if (static::$validationCache !== null && $consentId === null) {
+			return static::$validationCache;
+		}
+
+		$cookieData = static::getCookieData();
+
+		if (!$consentId) {
+			$consentId = $cookieData['consentId'] ?? null;
+		}
+
+		if (!$consentId) {
+			$result = ['valid' => false, 'reason' => 'no_consent'];
+			static::$validationCache = $result;
+			return $result;
+		}
+
+		if ($cookieData && isset($cookieData['expirationTime'])) {
+			// js timestamp is in milliseconds
+			if ($cookieData['expirationTime'] < time() * 1000) {
+				$result = ['valid' => false, 'reason' => 'expired'];
+				static::$validationCache = $result;
+				return $result;
+			}
+		}
+
+		$log = Log::instance();
+		$consent = $log->findLatestByConsentId($consentId);
+
+		if ($consent && $consent['action'] === 'withdrawn') {
+			$result = ['valid' => false, 'reason' => 'withdrawn'];
+			static::$validationCache = $result;
+			return $result;
+		}
+
+		if ($cookieData) {
+			$result = [
+				'valid' => true,
+				'consent' => [
+					'acceptedCategories' => $cookieData['categories'] ?? [],
+					'acceptedServices' => $cookieData['services'] ?? [],
+					'timestamp' => $cookieData['consentTimestamp'] ?? null,
+					'expiresAt' => isset($cookieData['expirationTime']) ? date('Y-m-d H:i:s', $cookieData['expirationTime'] / 1000) : null
+				]
+			];
+			static::$validationCache = $result;
+			return $result;
+		}
+
+		if (!$consent) {
+			$result = ['valid' => false, 'reason' => 'not_found'];
+			static::$validationCache = $result;
+			return $result;
+		}
+
+		$result = [
+			'valid' => true,
+			'consent' => [
+				'acceptType' => $consent['accept_type'],
+				'acceptedCategories' => json_decode($consent['accepted_categories'], true),
+				'acceptedServices' => json_decode($consent['accepted_services'], true),
+				'timestamp' => $consent['timestamp'],
+				'expiresAt' => $consent['expires_at']
+			]
+		];
+		static::$validationCache = $result;
+		return $result;
+	}
+
+	/**
+	 * Get consent status
+	 */
+	public static function getStatus(string|null $consentId = null): ?array
+	{
+		$cookieData = static::getCookieData();
+
+		if (!$consentId) {
+			$consentId = $cookieData['consentId'] ?? null;
+		}
+
+		if (!$consentId) {
+			return null;
+		}
+
+		$log = Log::instance();
+		$dbRecord = $log->findLatestByConsentId($consentId);
+
+		if ($cookieData && $dbRecord) {
+			return array_merge($dbRecord, [
+				'categories' => $cookieData['categories'] ?? [],
+				'services' => $cookieData['services'] ?? [],
+				'revision' => $cookieData['revision'] ?? null
+			]);
+		}
+
+		return $dbRecord;
+	}
+
+	/**
+	 * Check if consent was given for a category and optionally a specific service
+	 */
+	public static function hasConsent(string $category, ?string $service = null): bool
+	{
+		static::trackUsage();
+
+		if (!static::hasConsentForCategory($category)) {
+			return false;
+		}
+
+		if ($service !== null) {
+			return static::hasConsentForService($service);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if consent was given for a specific category
+	 */
+	public static function hasConsentForCategory(string $category): bool
+	{
+		static::trackUsage();
+
+		$cookieData = static::getCookieData();
+		if (!$cookieData) {
+			return false;
+		}
+
+		$validation = static::validate();
+		if (!$validation['valid']) {
+			return false;
+		}
+
+		$acceptedCategories = $cookieData['categories'] ?? [];
+		return in_array($category, $acceptedCategories);
+	}
+
+	/**
+	 * Check if consent was given for a specific service
+	 */
+	public static function hasConsentForService(string $service): bool
+	{
+		static::trackUsage();
+
+		$cookieData = static::getCookieData();
+		if (!$cookieData) {
+			return false;
+		}
+
+		$validation = static::validate();
+		if (!$validation['valid']) {
+			return false;
+		}
+
+		$acceptedServices = $cookieData['services'] ?? [];
+		return in_array($service, $acceptedServices);
+	}
+
+	/**
+	 * Check if any consent beyond necessary was given
+	 */
+	public static function hasAnyConsent(): bool
+	{
+		static::trackUsage();
+
+		$cookieData = static::getCookieData();
+		if (!$cookieData) {
+			return false;
+		}
+
+		$validation = static::validate();
+		if (!$validation['valid']) {
+			return false;
+		}
+
+		$acceptedCategories = $cookieData['categories'] ?? [];
+		return !empty($acceptedCategories);
+	}
+
+	/**
+	 * Check if all optional categories were accepted
+	 */
+	public static function hasFullConsent(): bool
+	{
+		static::trackUsage();
+
+		$cookieData = static::getCookieData();
+		if (!$cookieData) {
+			return false;
+		}
+
+		$validation = static::validate();
+		if (!$validation['valid']) {
+			return false;
+		}
+
+		$optionalCategories = static::getOptionalCategories();
+		$acceptedCategories = $cookieData['categories'] ?? [];
+
+		foreach ($optionalCategories as $category) {
+			if (!in_array($category, $acceptedCategories)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Tells the CMS responder that the response relies on a cookie and
+	 * its value (even if the cookie isn't set in the current request);
+	 * this ensures that the response is only cached for visitors who don't
+	 * have this cookie set;
+	 * https://github.com/getkirby/kirby/issues/4423#issuecomment-1166300526
+	 */
+	protected static function trackUsage(): void
+	{
+		$kirby = App::instance(null, true);
+		$kirby?->response()->usesCookie('cc_cookie');
+	}
+
+	/**
+	 * Get all optional categories (cached)
+	 */
+	protected static function getOptionalCategories(): array
+	{
+		if (static::$categoriesCache !== null) {
+			return static::$categoriesCache;
+		}
+
+		$crumblePage = Crumble::page();
+		if (!$crumblePage) {
+			static::$categoriesCache = [];
+			return [];
+		}
+
+		$categories = $crumblePage->children()
+			->filterBy('intendedTemplate', 'crumble-category')
+			->filterBy('mandatory', false)
+			->pluck('slug');
+
+		static::$categoriesCache = $categories;
+		return $categories;
 	}
 
 	/**
@@ -250,7 +410,6 @@ class ConsentManager
 	{
 		$kirby = App::instance();
 
-		// 1. check header (for services like CF)
 		$customHeader = Crumble::option('geo.header');
 		if ($customHeader) {
 			$country = $kirby->request()->header($customHeader);
@@ -259,7 +418,6 @@ class ConsentManager
 			}
 		}
 
-		// 2. try geocoder if configured
 		$geocoder = Crumble::option('geo.geocoder');
 		if ($geocoder) {
 			try {
@@ -271,11 +429,9 @@ class ConsentManager
 					}
 				}
 			} catch (\Exception $e) {
-				// geocoding failed, continue to next method
 			}
 		}
 
-		// 3. use callback if provided
 		$callback = Crumble::option('geo.resolver');
 		if (is_callable($callback)) {
 			$country = $callback($kirby->visitor()->ip());
@@ -284,7 +440,6 @@ class ConsentManager
 			}
 		}
 
-		// 4. default to null (unknown)
 		return null;
 	}
 }
