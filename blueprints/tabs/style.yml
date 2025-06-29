@@ -1,6 +1,10 @@
 label: crumble.style
 icon: brush
 columns:
+  - width: 1
+    sections:
+      license4:
+        type: crumble-license
   - width: 1/2
     fields:
       _consentModal2:

@@ -8,8 +8,9 @@
  */
 
 use Kirby\Cms\App;
+use tobimori\Crumble\Crumble;
 
-$page = site()->find(option('tobimori.crumble.page'));
+$page = Crumble::page();
 if (!$page) {
 	return;
 } ?>

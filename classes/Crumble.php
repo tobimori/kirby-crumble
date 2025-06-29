@@ -3,6 +3,7 @@
 namespace tobimori\Crumble;
 
 use Kirby\Cms\App;
+use Kirby\Cms\Page;
 use Kirby\Toolkit\Str;
 
 final class Crumble
@@ -18,6 +19,23 @@ final class Crumble
 		}
 
 		return $option;
+	}
+
+	/**
+	 * Check if current user has a specific permission
+	 */
+	public static function can(string $permission): bool
+	{
+		$user = App::instance()->user();
+		return $user && $user->role()->permissions()->for('tobimori.crumble', $permission);
+	}
+
+	/**
+	 * Get the crumble page
+	 */
+	public static function page(): ?Page
+	{
+		return site()->find(static::option('page'));
 	}
 
 	/**

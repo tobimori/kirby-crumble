@@ -2,6 +2,8 @@ label: crumble.categories
 icon: checklist
 
 sections:
+  license3:
+    type: crumble-license
   categories:
     type: pages
     label: crumble.fields.content

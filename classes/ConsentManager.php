@@ -24,6 +24,24 @@ class ConsentManager
 
 		$kirby = App::instance();
 
+		// Determine accept type
+		$acceptType = 'necessary';
+		$acceptedCategories = $data['categories'] ?? [];
+
+		if (!empty($acceptedCategories)) {
+			$page = Crumble::page();
+			if ($page) {
+				$allCategories = $page->children()
+					->filterBy('intendedTemplate', 'crumble-category')
+					->filterBy('mandatory', false)
+					->pluck('slug');
+
+				$acceptType = $allCategories == $acceptedCategories ? 'all' : 'custom';
+			} else {
+				$acceptType = 'custom';
+			}
+		}
+
 		Log::instance()->insert([
 			'consent_id' => $data['consentId'],
 			'action' => 'consent',
@@ -31,12 +49,12 @@ class ConsentManager
 			'ip_address' => static::processIp($kirby->visitor()->ip()),
 			'user_agent' => $kirby->request()->header('User-Agent'),
 			'consent_version' => (string)($data['revision'] ?? '1'),
-			'accept_type' => empty($data['categories']) ? 'necessary' : 'custom',
+			'accept_type' => $acceptType,
 			'accepted_categories' => json_encode($data['categories'] ?? []),
 			'accepted_services' => json_encode($data['services'] ?? []),
 			'language' => $data['languageCode'] ?? 'en',
 			'country_code' => static::detectCountryCode(),
-			'page_url' => $kirby->request()->url()->toString(),
+			'page_url' => $kirby->request()->header('Referer') ?? '',
 			'expires_at' => date('Y-m-d H:i:s', strtotime('+' . Crumble::option('expiresAfter', 365) . ' days'))
 		]);
 
@@ -132,7 +150,7 @@ class ConsentManager
 			'accepted_categories' => json_encode([]),
 			'accepted_services' => json_encode([]),
 			'language' => $kirby->language()?->code() ?? 'en',
-			'page_url' => $kirby->request()->url()->toString(),
+			'page_url' => $kirby->request()->header('Referer') ?? '',
 			'timestamp' => date('Y-m-d H:i:s'),
 			'expires_at' => date('Y-m-d H:i:s')
 		]);
@@ -217,8 +235,8 @@ class ConsentManager
 	 */
 	protected static function processIp(string $ip): string
 	{
-		if (Crumble::option('privacy.hashIp', true)) {
-			$salt = Crumble::option('privacy.salt');
+		if (Crumble::option('database.hashIp', false)) {
+			$salt = Crumble::option('database.hashSalt', '');
 			return hash('sha256', $ip . $salt);
 		}
 

@@ -2,6 +2,8 @@
 
 use Kirby\Http\Response;
 use tobimori\Crumble\ConsentManager;
+use tobimori\Crumble\Crumble;
+use tobimori\Crumble\Log\Log;
 
 return [
 	[
@@ -10,7 +12,7 @@ return [
 		'action' => function () {
 			try {
 				$cookie = ConsentManager::record();
-				
+
 				$expires = time() + (365 * 24 * 60 * 60);
 				setcookie(
 					'cc_cookie',
@@ -23,7 +25,7 @@ return [
 						'samesite' => 'Lax'
 					]
 				);
-				
+
 				return 'ok';
 			} catch (\Exception $e) {
 				return Response::json(['error' => $e->getMessage()], 400);
@@ -34,7 +36,7 @@ return [
 		'pattern' => 'crumble/config.json',
 		'method' => 'GET',
 		'action' => function () {
-			$page = site()->find(option('tobimori.crumble.page'));
+			$page = Crumble::page();
 			if (!$page) {
 				return Response::json(['error' => 'Configuration not found'], 404);
 			}
@@ -46,7 +48,7 @@ return [
 		'pattern' => 'crumble/consent.js',
 		'method' => 'GET',
 		'action' => function () {
-			$page = site()->find(option('tobimori.crumble.page'));
+			$page = Crumble::page();
 			if (!$page) {
 				return new Response('// Configuration not found', 'application/javascript', 404);
 			}
@@ -59,7 +61,7 @@ return [
 		'pattern' => 'crumble/consent.(:num).js',
 		'method' => 'GET',
 		'action' => function ($revision) {
-			$page = site()->find(option('tobimori.crumble.page'));
+			$page = Crumble::page();
 			if (!$page) {
 				return new Response('// Configuration not found', 'application/javascript', 404);
 			}
@@ -67,5 +69,5 @@ return [
 			$content = snippet('crumble/consent.js', ['page' => $page, 'plugin' => kirby()->plugin('tobimori/crumble')], true);
 			return new Response($content, 'application/javascript');
 		}
-	]
+	],
 ];
