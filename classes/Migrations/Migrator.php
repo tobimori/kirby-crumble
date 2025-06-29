@@ -62,14 +62,20 @@ class Migrator
 	 */
 	protected function hasRun(string $version): bool
 	{
-		$db = $this->db();
-		
-		$result = $db->table('crumble_migrations')
-			->select('*')
-			->where('version', '=', $version)
-			->first();
+		try {
+			$db = $this->db();
 			
-		return $result !== null;
+			$result = $db->crumble_migrations()
+				->select('*')
+				->where('version', '=', $version)
+				->fetch('array')
+				->first();
+				
+			return $result !== false && $result !== null;
+		} catch (\Exception $e) {
+			// Table doesn't exist or query failed
+			return false;
+		}
 	}
 
 	/**
@@ -79,7 +85,7 @@ class Migrator
 	{
 		$db = $this->db();
 		
-		$db->insert('crumble_migrations', [
+		$db->crumble_migrations()->insert([
 			'version' => $version,
 			'run_at' => date('Y-m-d H:i:s')
 		]);
@@ -94,7 +100,7 @@ class Migrator
 		
 		// Try to select from the table - if it fails, table doesn't exist
 		try {
-			$db->table('crumble_migrations')->select('*')->limit(1)->first();
+			$db->crumble_migrations()->select('*')->limit(1)->first();
 			return; // Table exists
 		} catch (\Exception $e) {
 			// Table doesn't exist, continue to create it

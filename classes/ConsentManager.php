@@ -3,8 +3,6 @@
 namespace tobimori\Crumble;
 
 use Kirby\Cms\App;
-use Kirby\Http\Cookie;
-use Kirby\Toolkit\Str;
 use tobimori\Crumble\Log\Log;
 
 class ConsentManager
@@ -12,45 +10,37 @@ class ConsentManager
 	/**
 	 * Record consent from frontend
 	 */
-	public static function record(array $data): array
+	public static function record(): string
 	{
-		// get or create consent id
-		$consentId = static::getConsentIdFromCookie() ?? Str::uuid();
+		$cookie = $_COOKIE['cc_cookie'] ?? null;
+		if (!$cookie) {
+			throw new \Exception('No consent cookie found');
+		}
 
-		// prepare data for logging
+		$data = json_decode(urldecode($cookie), true);
+		if (!$data) {
+			throw new \Exception('Invalid cookie data');
+		}
+
 		$kirby = App::instance();
-		$logData = [
-			'consent_id' => $consentId,
-			'action' => $data['action'] ?? 'given',
+
+		Log::instance()->insert([
+			'consent_id' => $data['consentId'],
+			'action' => 'consent',
+			'timestamp' => date('Y-m-d H:i:s'),
 			'ip_address' => static::processIp($kirby->visitor()->ip()),
 			'user_agent' => $kirby->request()->header('User-Agent'),
-			'consent_version' => Crumble::option('consent.version', '1.0'),
-			'accept_type' => $data['acceptType'] ?? 'custom',
-			'accepted_categories' => json_encode($data['categories']['accepted'] ?? []),
-			'rejected_categories' => json_encode($data['categories']['rejected'] ?? []),
-			'accepted_services' => json_encode($data['services']['accepted'] ?? []),
-			'rejected_services' => json_encode($data['services']['rejected'] ?? []),
-			'language' => $kirby->language()?->code() ?? 'en', // TODO: do we need to have an option or single lang here?
-			'country_code' => $data['country_code'] ?? static::detectCountryCode(),
-			'page_url' => $data['page_url'] ?? $kirby->request()->url()->toString(),
-			'timestamp' => date('Y-m-d H:i:s'),
-			'expires_at' => date('Y-m-d H:i:s', strtotime('+' . Crumble::option('consent.expiresAfter', 365) . ' days'))
-		];
-
-		// store in database
-		$log = Log::instance();
-		$log->insert($logData);
-
-		// set cookies
-		static::setCookies($consentId, [
-			'accepted' => $data['categories']['accepted'] ?? [],
-			'rejected' => $data['categories']['rejected'] ?? []
+			'consent_version' => (string)($data['revision'] ?? '1'),
+			'accept_type' => empty($data['categories']) ? 'necessary' : 'custom',
+			'accepted_categories' => json_encode($data['categories'] ?? []),
+			'accepted_services' => json_encode($data['services'] ?? []),
+			'language' => $data['languageCode'] ?? 'en',
+			'country_code' => static::detectCountryCode(),
+			'page_url' => $kirby->request()->url()->toString(),
+			'expires_at' => date('Y-m-d H:i:s', strtotime('+' . Crumble::option('expiresAfter', 365) . ' days'))
 		]);
 
-		return [
-			'success' => true,
-			'consentId' => $consentId
-		];
+		return $cookie;
 	}
 
 	/**
@@ -58,27 +48,48 @@ class ConsentManager
 	 */
 	public static function validate(string|null $consentId = null): array
 	{
-		$consentId = $consentId ?? static::getConsentIdFromCookie();
+		// get consent data from cc_cookie first
+		$cookieData = static::getCookieData();
+
+		if (!$consentId) {
+			$consentId = $cookieData['consentId'] ?? null;
+		}
 
 		if (!$consentId) {
 			return ['valid' => false, 'reason' => 'no_consent'];
 		}
 
+		// check if cookie is expired
+		if ($cookieData && isset($cookieData['expirationTime'])) {
+			if ($cookieData['expirationTime'] < time() * 1000) { // js timestamp is in milliseconds
+				return ['valid' => false, 'reason' => 'expired'];
+			}
+		}
+
+		// optionally check database for withdrawn status
 		$log = Log::instance();
 		$consent = $log->findLatestByConsentId($consentId);
 
+		if ($consent && $consent['action'] === 'withdrawn') {
+			return ['valid' => false, 'reason' => 'withdrawn'];
+		}
+
+		// if we have cookie data, use that as primary source
+		if ($cookieData) {
+			return [
+				'valid' => true,
+				'consent' => [
+					'acceptedCategories' => $cookieData['categories'] ?? [],
+					'acceptedServices' => $cookieData['services'] ?? [],
+					'timestamp' => $cookieData['consentTimestamp'] ?? null,
+					'expiresAt' => isset($cookieData['expirationTime']) ? date('Y-m-d H:i:s', $cookieData['expirationTime'] / 1000) : null
+				]
+			];
+		}
+
+		// fallback to database if no cookie
 		if (!$consent) {
 			return ['valid' => false, 'reason' => 'not_found'];
-		}
-
-		// check if expired
-		if (strtotime($consent['expires_at']) < time()) {
-			return ['valid' => false, 'reason' => 'expired'];
-		}
-
-		// check if withdrawn
-		if ($consent['action'] === 'withdrawn') {
-			return ['valid' => false, 'reason' => 'withdrawn'];
 		}
 
 		return [
@@ -86,9 +97,7 @@ class ConsentManager
 			'consent' => [
 				'acceptType' => $consent['accept_type'],
 				'acceptedCategories' => json_decode($consent['accepted_categories'], true),
-				'rejectedCategories' => json_decode($consent['rejected_categories'], true),
 				'acceptedServices' => json_decode($consent['accepted_services'], true),
-				'rejectedServices' => json_decode($consent['rejected_services'], true),
 				'timestamp' => $consent['timestamp'],
 				'expiresAt' => $consent['expires_at']
 			]
@@ -100,34 +109,35 @@ class ConsentManager
 	 */
 	public static function withdraw(string|null $consentId = null): bool
 	{
-		$consentId = $consentId ?? static::getConsentIdFromCookie();
+		// get consent id from cc_cookie if not provided
+		if (!$consentId) {
+			$cookieData = static::getCookieData();
+			$consentId = $cookieData['consentId'] ?? null;
+		}
 
 		if (!$consentId) {
 			return false;
 		}
 
-		// record withdrawal
+		// record withdrawal in database for audit trail
+		$kirby = App::instance();
 		$log = Log::instance();
 		$log->insert([
 			'consent_id' => $consentId,
 			'action' => 'withdrawn',
-			'ip_address' => static::processIp(kirby()->visitor()->ip()),
-			'user_agent' => kirby()->request()->header('User-Agent'),
-			'consent_version' => Crumble::option('consent.version', '1.0'),
+			'ip_address' => static::processIp($kirby->visitor()->ip()),
+			'user_agent' => $kirby->request()->header('User-Agent'),
+			'consent_version' => '1',
 			'accept_type' => 'none',
 			'accepted_categories' => json_encode([]),
-			'rejected_categories' => json_encode([]),
 			'accepted_services' => json_encode([]),
-			'rejected_services' => json_encode([]),
-			'language' => kirby()->language()?->code() ?? 'en',
-			'page_url' => kirby()->request()->url()->toString(),
+			'language' => $kirby->language()?->code() ?? 'en',
+			'page_url' => $kirby->request()->url()->toString(),
 			'timestamp' => date('Y-m-d H:i:s'),
 			'expires_at' => date('Y-m-d H:i:s')
 		]);
 
-		// clear cookies
-		static::clearCookies();
-
+		// note: cc_cookie should be cleared by the frontend library
 		return true;
 	}
 
@@ -136,14 +146,31 @@ class ConsentManager
 	 */
 	public static function getStatus(string|null $consentId = null): ?array
 	{
-		$consentId = $consentId ?? static::getConsentIdFromCookie();
+		// get consent data from cc_cookie first
+		$cookieData = static::getCookieData();
+
+		if (!$consentId) {
+			$consentId = $cookieData['consentId'] ?? null;
+		}
 
 		if (!$consentId) {
 			return null;
 		}
 
+		// check database for additional info
 		$log = Log::instance();
-		return $log->findLatestByConsentId($consentId);
+		$dbRecord = $log->findLatestByConsentId($consentId);
+
+		// merge cookie and database data, preferring cookie data
+		if ($cookieData && $dbRecord) {
+			return array_merge($dbRecord, [
+				'categories' => $cookieData['categories'] ?? [],
+				'services' => $cookieData['services'] ?? [],
+				'revision' => $cookieData['revision'] ?? null
+			]);
+		}
+
+		return $dbRecord;
 	}
 
 	/**
@@ -166,41 +193,23 @@ class ConsentManager
 	}
 
 	/**
-	 * Set consent cookies
+	 * Get consent data from cc_cookie
 	 */
-	protected static function setCookies(string $consentId, array $categories): void
+	protected static function getCookieData(): ?array
 	{
-		// secure consent id cookie (httponly)
-		Cookie::set('crumble_consent_id', $consentId, [
-			'lifetime' => Crumble::option('consent.expiresAfter', 365) * 24 * 60,
-			'httpOnly' => true,
-			'secure' => kirby()->request()->ssl(),
-			'sameSite' => 'Lax'
-		]);
+		$cookie = $_COOKIE['cc_cookie'] ?? null;
+		if (!$cookie) {
+			return null;
+		}
 
-		// categories cookie (readable by js)
-		Cookie::set('crumble_consent_status', json_encode($categories), [
-			'lifetime' => Crumble::option('consent.expiresAfter', 365) * 24 * 60,
-			'secure' => kirby()->request()->ssl(),
-			'sameSite' => 'Lax'
-		]);
-	}
+		$decoded = urldecode($cookie);
+		$data = json_decode($decoded, true);
 
-	/**
-	 * Clear consent cookies
-	 */
-	protected static function clearCookies(): void
-	{
-		Cookie::remove('crumble_consent_id');
-		Cookie::remove('crumble_consent_status');
-	}
+		if (!$data || !is_array($data)) {
+			return null;
+		}
 
-	/**
-	 * Get consent id from cookie
-	 */
-	protected static function getConsentIdFromCookie(): ?string
-	{
-		return Cookie::get('crumble_consent_id');
+		return $data;
 	}
 
 	/**

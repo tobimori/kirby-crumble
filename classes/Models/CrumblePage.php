@@ -156,7 +156,7 @@ class CrumblePage extends Page
 				'domain' => parse_url($kirby->url(), PHP_URL_HOST),
 				'path' => '/',
 				'sameSite' => 'Lax',
-				'expiresAfterDays' => Crumble::option('expiresAfter')
+				'expiresAfterDays' => 0 // session cookie until server extends it
 			]
 		];
 	}

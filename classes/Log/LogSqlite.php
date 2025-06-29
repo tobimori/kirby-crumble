@@ -2,6 +2,7 @@
 
 namespace tobimori\Crumble\Log;
 
+use Kirby\Cms\App;
 use Kirby\Database\Database;
 use tobimori\Crumble\Crumble;
 
@@ -12,7 +13,8 @@ class LogSqlite extends Log
 	 */
 	protected function connect(): void
 	{
-		$path = Crumble::option('database.sqlite.path', kirby()->root('logs') . '/crumble/consent.sqlite');
+		$kirby = App::instance();
+		$path = Crumble::option('database.sqlite.path', $kirby->root('logs') . '/crumble/consent.sqlite');
 
 		// ensure directory exists
 		$dir = dirname($path);
@@ -24,5 +26,13 @@ class LogSqlite extends Log
 			'type' => 'sqlite',
 			'database' => $path
 		]);
+		
+		// Set SQLite to use WAL mode to prevent locking issues
+		try {
+			$this->db->execute('PRAGMA journal_mode=WAL');
+			$this->db->execute('PRAGMA busy_timeout=5000'); // 5 second timeout
+		} catch (\Exception $e) {
+			// Ignore pragma errors
+		}
 	}
 }

@@ -10,6 +10,7 @@ abstract class Log
 {
 	protected Database $db;
 	protected string $table = 'crumble_consent_logs';
+	protected static ?self $instance = null;
 
 	public function __construct()
 	{
@@ -21,12 +22,16 @@ abstract class Log
 	 */
 	public static function instance(): static
 	{
-		$type = Crumble::option('database.type', 'sqlite');
+		if (static::$instance === null) {
+			$type = Crumble::option('database.type', 'sqlite');
 
-		return match ($type) {
-			'mysql' => new LogMysql(),
-			default => new LogSqlite()
-		};
+			static::$instance = match ($type) {
+				'mysql' => new LogMysql(),
+				default => new LogSqlite()
+			};
+		}
+
+		return static::$instance;
 	}
 
 	/**
@@ -37,9 +42,9 @@ abstract class Log
 	/**
 	 * Insert consent record
 	 */
-	public function insert(array $data): int
+	public function insert(array $data): int|false
 	{
-		return $this->db->insert($this->table, $data);
+		return $this->table()->insert($data);
 	}
 
 	/**
@@ -78,9 +83,9 @@ abstract class Log
 	/**
 	 * Delete expired consents
 	 */
-	public function deleteExpired(): int
+	public function deleteExpired(): bool
 	{
-		return $this->db->delete($this->table, [
+		return $this->table()->delete([
 			'expires_at <' => date('Y-m-d H:i:s')
 		]);
 	}
@@ -91,7 +96,15 @@ abstract class Log
 	 */
 	protected function query(): Query
 	{
-		return $this->db->query($this->table);
+		return $this->table();
+	}
+
+	/**
+	 * Returns the database table object
+	 */
+	public function table(): Query
+	{
+		return $this->db->crumble_consent_logs();
 	}
 
 	/**

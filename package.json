@@ -6,7 +6,7 @@
 		"lint": "eslint \"panel/**/*.{js,vue}\"",
 		"lint:fix": "npm run lint -- --fix",
 		"format": "prettier --write \"panel/**/*.{js,vue}\"",
-		"copy-assets": "mkdir -p assets && cp node_modules/vanilla-cookieconsent/dist/cookieconsent.esm.js assets/ && cp node_modules/vanilla-cookieconsent/dist/cookieconsent.css assets/",
+		"copy-assets": "mkdir -p assets && cp node_modules/vanilla-cookieconsent/dist/cookieconsent.esm.js assets/ && cp node_modules/vanilla-cookieconsent/dist/cookieconsent.css assets/ && cp node_modules/vanilla-cookieconsent/LICENSE assets/LICENSE",
 		"prepare": "husky && npm run copy-assets",
 		"postinstall": "npm run copy-assets"
 	},
